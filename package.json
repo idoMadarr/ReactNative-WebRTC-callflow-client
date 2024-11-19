@@ -10,8 +10,12 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-navigation/native": "^7.0.3",
+    "@react-navigation/native-stack": "^7.0.4",
     "react": "18.3.1",
     "react-native": "0.75.2",
+    "react-native-safe-area-context": "^4.14.0",
+    "react-native-screens": "^4.1.0",
     "react-native-webrtc": "^124.0.4",
     "socket.io-client": "^4.8.1"
   },

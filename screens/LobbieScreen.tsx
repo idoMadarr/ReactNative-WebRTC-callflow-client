@@ -5,6 +5,8 @@ import {
   View,
   TouchableOpacity,
   TextInput,
+  StyleSheet,
+  Dimensions,
 } from 'react-native';
 import {
   mediaDevices,
@@ -14,10 +16,7 @@ import {
   RTCSessionDescription,
   RTCView,
 } from 'react-native-webrtc';
-import {SocketContext, /* socket */ callerId} from '../utils/socketIO';
-// import RoomScreen from './screens/RoomScreen';
-// import CallScreen from './screens/CallScreen';
-// import JoinScreen from './screens/JoinScreen';
+import {SocketContext, callerId} from '../utils/socketIO';
 
 interface DeviceType {
   deviceId: string;
@@ -127,7 +126,6 @@ export default function LobbieScreen() {
             },
           };
           socket.emit('ICEcandidate', icecandidate);
-          //   sendICEcandidate(icecandidate);
         } else {
           console.log('End of candidates.');
         }
@@ -195,21 +193,48 @@ export default function LobbieScreen() {
     socket.emit('answerCall', data);
   };
 
+  //   function switchCamera() {
+  //     localStream.getVideoTracks().forEach(track => {
+  //       track._switchCamera();
+  //     });
+  //   }
+
+  //   function toggleCamera() {
+  //     localWebcamOn ? setlocalWebcamOn(false) : setlocalWebcamOn(true);
+  //     localStream.getVideoTracks().forEach(track => {
+  //       localWebcamOn ? (track.enabled = false) : (track.enabled = true);
+  //     });
+  //   }
+
+  //   function toggleMic() {
+  //     localMicOn ? setlocalMicOn(false) : setlocalMicOn(true);
+  //     localStream.getAudioTracks().forEach(track => {
+  //       localMicOn ? (track.enabled = false) : (track.enabled = true);
+  //     });
+  //   }
+
+  //   function leave() {
+  //     peerConnection.current.close();
+  //     setlocalStream(null);
+  //     setType('JOIN');
+  //   }
+
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.screen}>
       <View
         style={{
-          backgroundColor: '#050A0E',
-          paddingHorizontal: 12,
-          paddingVertical: 12,
+          height: Dimensions.get('window').height * 0.4,
         }}>
         {localStream ? (
           <RTCView
-            objectFit={'cover'}
-            style={{width: 200, height: 300, backgroundColor: '#050A0E'}}
+            objectFit={'contain'}
+            style={{
+              flex: 1,
+            }}
             streamURL={localStream.toURL()}
           />
         ) : null}
+
         {remoteStream ? (
           <RTCView
             objectFit={'cover'}
@@ -239,3 +264,9 @@ export default function LobbieScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+});
