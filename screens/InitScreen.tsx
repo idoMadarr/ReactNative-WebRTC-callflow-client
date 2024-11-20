@@ -7,6 +7,7 @@ import {
   StatusBar,
 } from 'react-native';
 import {navigate} from '../utils/navigationRef';
+import TextElement from '../components/TextElement';
 
 const InitScreen = () => {
   useEffect(() => {
@@ -18,8 +19,8 @@ const InitScreen = () => {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar barStyle={'dark-content'} backgroundColor={'white'} />
-      <Text>Welcome to CallFlow</Text>
-      <Text>Nina Tracker</Text>
+      <TextElement>Welcome to CallFlow</TextElement>
+      <TextElement>Nina Tracker</TextElement>
       <ActivityIndicator />
     </SafeAreaView>
   );

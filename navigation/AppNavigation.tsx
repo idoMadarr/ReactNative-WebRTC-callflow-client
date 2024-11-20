@@ -4,6 +4,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import InitScreen from '../screens/InitScreen';
 import LobbieScreen from '../screens/LobbieScreen';
 import {navigationRef} from '../utils/navigationRef';
+import CallScreen from '../screens/CallScreen';
 
 const AppNavigator = createNativeStackNavigator();
 
@@ -13,6 +14,7 @@ const AppNavigation: React.FC = () => {
       <AppNavigator.Navigator screenOptions={{headerShown: false}}>
         <AppNavigator.Screen name={'init'} component={InitScreen} />
         <AppNavigator.Screen name={'lobbie'} component={LobbieScreen} />
+        <AppNavigator.Screen name={'call'} component={CallScreen} />
       </AppNavigator.Navigator>
     </NavigationContainer>
   );

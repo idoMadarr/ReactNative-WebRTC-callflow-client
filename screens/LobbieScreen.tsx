@@ -7,6 +7,7 @@ import {
   TextInput,
   StyleSheet,
   Dimensions,
+  Alert,
 } from 'react-native';
 import {
   mediaDevices,
@@ -17,6 +18,9 @@ import {
   RTCView,
 } from 'react-native-webrtc';
 import {SocketContext, callerId} from '../utils/socketIO';
+import PhoneIcon from '../assets/svgs/phone.svg';
+import {navigate} from '../utils/navigationRef';
+import {Socket} from 'socket.io-client';
 
 interface DeviceType {
   deviceId: string;
@@ -54,11 +58,23 @@ export default function LobbieScreen() {
 
   const [incomingCall, setIncomingCall] = useState(false);
 
-  const peerConnection = useRef(new RTCPeerConnection(peerConstraints));
+  const peerConnection = useRef<RTCPeerConnection>(
+    new RTCPeerConnection(peerConstraints),
+  );
   let remoteRTCMessage = useRef(null);
-  const otherUserId = useRef(null);
+  const otherUserId = useRef<string | null>(null);
 
-  const socket = useContext(SocketContext) as any;
+  const socket = useContext(SocketContext) as Socket;
+
+  useEffect(() => {
+    if (localStream && remoteStream) {
+      navigate('call', {
+        localStream,
+        remoteStream,
+        peerConnection: peerConnection.current,
+      });
+    }
+  }, [localStream, remoteStream]);
 
   useEffect(() => {
     socket.on('newCall', (data: any) => {
@@ -74,25 +90,21 @@ export default function LobbieScreen() {
       );
     });
 
-    socket.on('ICEcandidate', (data: any) => {
-      console.log('???gg', data);
-
+    socket.on('ICEcandidate', async (data: any) => {
       let message = data.rtcMessage;
       if (peerConnection.current) {
-        peerConnection?.current
-          .addIceCandidate(
+        try {
+          await peerConnection.current.addIceCandidate(
             new RTCIceCandidate({
               candidate: message.candidate,
               sdpMid: message.id,
               sdpMLineIndex: message.label,
             }),
-          )
-          .then(data => {
-            console.log('SUCCESS');
-          })
-          .catch(err => {
-            console.log('Error', err);
-          });
+          );
+          console.log('SUCCESS');
+        } catch (error) {
+          console.log('Error', error);
+        }
       }
     });
 
@@ -108,7 +120,6 @@ export default function LobbieScreen() {
     if (localStream) {
       // @ts-ignore:
       peerConnection.current.addEventListener('track', event => {
-        console.log('track event');
         const newRemoteStream = new MediaStream();
         newRemoteStream.addTrack(event.track);
         setRemoteStream(newRemoteStream);
@@ -169,6 +180,10 @@ export default function LobbieScreen() {
   };
 
   const startCall = async () => {
+    if (otherUserId.current?.length !== 6) {
+      return Alert.alert('Invalid UserID');
+    }
+
     const sessionDescription = await peerConnection.current.createOffer(
       sessionConstraints,
     );
@@ -192,12 +207,6 @@ export default function LobbieScreen() {
     };
     socket.emit('answerCall', data);
   };
-
-  //   function switchCamera() {
-  //     localStream.getVideoTracks().forEach(track => {
-  //       track._switchCamera();
-  //     });
-  //   }
 
   //   function toggleCamera() {
   //     localWebcamOn ? setlocalWebcamOn(false) : setlocalWebcamOn(true);
@@ -223,7 +232,8 @@ export default function LobbieScreen() {
     <SafeAreaView style={styles.screen}>
       <View
         style={{
-          height: Dimensions.get('window').height * 0.4,
+          flexDirection: 'row',
+          height: Dimensions.get('window').height * 0.35,
         }}>
         {localStream ? (
           <RTCView
@@ -234,16 +244,8 @@ export default function LobbieScreen() {
             streamURL={localStream.toURL()}
           />
         ) : null}
-
-        {remoteStream ? (
-          <RTCView
-            objectFit={'cover'}
-            style={{width: 200, height: 300, backgroundColor: '#050A0E'}}
-            streamURL={remoteStream.toURL()}
-          />
-        ) : null}
       </View>
-      <Text style={{fontSize: 36}}>Your Caller ID: {callerId}</Text>
+
       {incomingCall && (
         <TouchableOpacity onPress={acceptCall}>
           <Text style={{fontSize: 26, color: 'red'}}>
@@ -251,16 +253,29 @@ export default function LobbieScreen() {
           </Text>
         </TouchableOpacity>
       )}
-      <TouchableOpacity style={{backgroundColor: 'green'}} onPress={startCall}>
-        <Text style={{fontSize: 20}}>Start new Call</Text>
+
+      <View style={styles.idSection}>
+        <Text style={{fontSize: 18}}>Your Caller ID</Text>
+        <Text style={{fontSize: 32, letterSpacing: 10, fontWeight: 'bold'}}>
+          - {callerId} -
+        </Text>
+        <TextInput
+          placeholder={'Enter Caller ID'}
+          keyboardType={'number-pad'}
+          style={styles.inputID}
+          value={otherUserId.current!}
+          maxLength={6}
+          onChangeText={text => {
+            otherUserId.current = text;
+          }}
+        />
+      </View>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={styles.callButton}
+        onPress={startCall}>
+        <PhoneIcon width={42} height={42} />
       </TouchableOpacity>
-      <TextInput
-        placeholder={'Enter Caller ID'}
-        value={otherUserId.current}
-        onChangeText={text => {
-          otherUserId.current = text;
-        }}
-      />
     </SafeAreaView>
   );
 }
@@ -268,5 +283,29 @@ export default function LobbieScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  idSection: {
+    width: Dimensions.get('window').width * 0.8,
+    alignSelf: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: '4%',
+  },
+  callButton: {
+    alignSelf: 'center',
+    width: 80,
+    height: 80,
+    borderRadius: 100,
+    elevation: 6,
+    justifyContent: 'center',
+    backgroundColor: 'green',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: '10%',
+  },
+  inputID: {
+    fontSize: 24,
+    borderBottomWidth: 1,
+    width: Dimensions.get('window').width * 0.8,
   },
 });
