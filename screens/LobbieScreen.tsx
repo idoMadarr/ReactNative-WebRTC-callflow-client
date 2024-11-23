@@ -2,7 +2,6 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
   SafeAreaView,
   View,
-  TouchableOpacity,
   TextInput,
   StyleSheet,
   Dimensions,
@@ -25,6 +24,7 @@ import {Socket} from 'socket.io-client';
 import StatusBarElement from '../components/StatusBarElement';
 import StatusCall from '../components/StatusCall';
 import TextElement from '../components/TextElement';
+import ButtonElement from '../components/ButtonElement';
 
 interface DeviceType {
   deviceId: string;
@@ -283,12 +283,13 @@ export default function LobbieScreen() {
           />
         </View>
       </TouchableWithoutFeedback>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        style={styles.callButton}
-        onPress={startCall}>
+
+      <ButtonElement
+        onPress={startCall}
+        backgroundColor={'green'}
+        cStyle={styles.callButton}>
         <PhoneIcon width={32} height={32} />
-      </TouchableOpacity>
+      </ButtonElement>
     </SafeAreaView>
   );
 }
@@ -312,13 +313,6 @@ const styles = StyleSheet.create({
   },
   callButton: {
     alignSelf: 'center',
-    width: 55,
-    height: 55,
-    borderRadius: 100,
-    elevation: 6,
-    justifyContent: 'center',
-    backgroundColor: 'green',
-    alignItems: 'center',
     position: 'absolute',
     bottom: '10%',
   },

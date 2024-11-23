@@ -1,23 +1,20 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  Dimensions,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+import {SafeAreaView, StyleSheet, Dimensions, View} from 'react-native';
 import {MediaStream, RTCView} from 'react-native-webrtc';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {Socket} from 'socket.io-client';
 import {SocketContext} from '../utils/socketIO';
 import StatusBarElement from '../components/StatusBarElement';
 import SwitchCameraIcon from '../assets/svgs/camera.svg';
-import ExitIcon from '../assets/svgs/exit.svg';
+import PhoneIcon from '../assets/svgs/phone.svg';
 import OffStreamIcon from '../assets/svgs/stream-off.svg';
 import VideoIcon from '../assets/svgs/video.svg';
 import NoVideoIcon from '../assets/svgs/no-video.svg';
+import NoVideoIconWhite from '../assets/svgs/no-video-white.svg';
 import MuteIcon from '../assets/svgs/mute.svg';
 import VoiceIcon from '../assets/svgs/voice.svg';
+import ButtonElement from '../components/ButtonElement';
+import * as Colors from '../assets/colors/palette.json';
 
 type RootStackParamList = {
   call: any;
@@ -35,10 +32,15 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
 
   const [localMicOn, setlocalMicOn] = useState(true);
   const [activeCamera, setActiveCamera] = useState(true);
+  const [remoteActiveCamera, setRemoteActiveCamera] = useState(true);
 
   useEffect(() => {
     socket.on('callEnded', () => {
       endConnection();
+    });
+
+    socket.on('toggleCamera', () => {
+      setRemoteActiveCamera(prevState => !prevState);
     });
 
     return () => {
@@ -58,6 +60,7 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
     localStream.getVideoTracks().forEach(track => {
       track.enabled = activeCamera ? false : true;
     });
+    socket.emit('setCamera', {otherUserId});
   };
 
   const toggleMic = () => {
@@ -78,6 +81,16 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
     <SafeAreaView style={styles.screen}>
       <StatusBarElement hidden={true} />
       <View style={styles.remoteStream}>
+        <View
+          style={[
+            styles.offStream,
+            {
+              display: !remoteActiveCamera ? 'flex' : 'none',
+              zIndex: 100,
+            },
+          ]}>
+          <NoVideoIconWhite />
+        </View>
         <RTCView
           objectFit={'cover'}
           style={styles.remote}
@@ -86,12 +99,14 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
           zOrder={10}
         />
       </View>
+
       <View style={styles.localStream}>
         <View
           style={[
             styles.offStream,
             {
               display: !activeCamera ? 'flex' : 'none',
+              zIndex: 200,
             },
           ]}>
           <OffStreamIcon />
@@ -105,18 +120,22 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
         />
       </View>
       <View style={styles.controller}>
-        <TouchableOpacity onPress={onSwitchCamera} style={styles.button}>
+        <ButtonElement onPress={onSwitchCamera} backgroundColor={Colors.white}>
           <SwitchCameraIcon />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onLeave} style={styles.button}>
-          <ExitIcon />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={toggleCamera} style={styles.button}>
+        </ButtonElement>
+        <ButtonElement onPress={onLeave} backgroundColor={Colors.secondary}>
+          <PhoneIcon width={32} height={32} rotation={133} />
+        </ButtonElement>
+        <ButtonElement
+          onPress={toggleCamera}
+          backgroundColor={activeCamera ? Colors.white : Colors.greish}>
           {activeCamera ? <NoVideoIcon /> : <VideoIcon />}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={toggleMic} style={styles.button}>
+        </ButtonElement>
+        <ButtonElement
+          onPress={toggleMic}
+          backgroundColor={localMicOn ? Colors.white : Colors.greish}>
           {localMicOn ? <MuteIcon /> : <VoiceIcon />}
-        </TouchableOpacity>
+        </ButtonElement>
       </View>
     </SafeAreaView>
   );
@@ -167,16 +186,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     position: 'absolute',
     top: 0,
-    zIndex: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  button: {
-    width: 55,
-    height: 55,
-    backgroundColor: 'white',
-    elevation: 6,
-    borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
   },
