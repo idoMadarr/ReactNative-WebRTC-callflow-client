@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   StatusBar,
+  Alert,
 } from 'react-native';
 import {navigate} from '../utils/navigationRef';
 import TextElement from '../components/TextElement';
@@ -12,9 +13,22 @@ import TextElement from '../components/TextElement';
 const InitScreen = () => {
   useEffect(() => {
     setTimeout(() => {
-      navigate('lobbie');
+      serverReady();
     }, 2500);
   }, []);
+
+  const serverReady = async () => {
+    try {
+      const response = await fetch('https://callflow-server.onrender.com/init');
+      const data = (await response.json()) as boolean;
+      if (data) navigate('lobbie');
+    } catch (error) {
+      Alert.alert(
+        'Server Error:',
+        `There is a problem with the running server: ${error}`,
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
