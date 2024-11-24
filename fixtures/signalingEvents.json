@@ -1,0 +1,20 @@
+{
+  "Signal": {
+    "CALL": "call",
+    "ANSWER_CALL": "answerCall",
+    "REJECT_CALL": "rejectCall",
+    "ICE_CANDIDATE": "ICEcandidate",
+    "SET_CAMERA": "setCamera",
+    "SET_MICROPHONE": "setMicrophone",
+    "END_CALL": "endCall"
+  },
+  "Listener": {
+    "NEW_CALL": "newCall",
+    "ICE_CANDIDATE": "ICEcandidate",
+    "CALL_ENDED": "callEnded",
+    "TOGGLE_CAMERA": "toggleCamera",
+    "TOGGLE_MICROPHONE": "toogleMicrophone",
+    "CALL_ANSWERED": "callAnswered",
+    "CALL_REJECTED": "callRejected"
+  }
+}

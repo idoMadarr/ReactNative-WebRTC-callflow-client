@@ -15,6 +15,8 @@ import MuteIcon from '../assets/svgs/mute.svg';
 import VoiceIcon from '../assets/svgs/voice.svg';
 import ButtonElement from '../components/ButtonElement';
 import * as Colors from '../assets/colors/palette.json';
+import TextElement from '../components/TextElement';
+import {Signal, Listener} from '../fixtures/signalingEvents.json';
 
 type RootStackParamList = {
   call: any;
@@ -31,20 +33,27 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
   const socket = useContext(SocketContext) as Socket;
 
   const [localMicOn, setlocalMicOn] = useState(true);
-  const [activeCamera, setActiveCamera] = useState(true);
+  const [remoteActiveMic, setRemoteActiveMic] = useState(true);
+  const [localActiveCamera, setLocalActiveCamera] = useState(true);
   const [remoteActiveCamera, setRemoteActiveCamera] = useState(true);
 
   useEffect(() => {
-    socket.on('callEnded', () => {
+    socket.on(Listener.CALL_ENDED, () => {
       endConnection();
     });
 
-    socket.on('toggleCamera', () => {
+    socket.on(Listener.TOGGLE_CAMERA, () => {
       setRemoteActiveCamera(prevState => !prevState);
     });
 
+    socket.on(Listener.TOGGLE_MICROPHONE, () => {
+      setRemoteActiveMic(prevState => !prevState);
+    });
+
     return () => {
-      socket.off('callEnded');
+      socket.off(Listener.CALL_ENDED);
+      socket.off(Listener.TOGGLE_CAMERA);
+      socket.off(Listener.TOGGLE_MICROPHONE);
     };
   }, []);
 
@@ -56,11 +65,11 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
   };
 
   const toggleCamera = () => {
-    setActiveCamera(activeCamera ? false : true);
+    setLocalActiveCamera(localActiveCamera ? false : true);
     localStream.getVideoTracks().forEach(track => {
-      track.enabled = activeCamera ? false : true;
+      track.enabled = localActiveCamera ? false : true;
     });
-    socket.emit('setCamera', {otherUserId});
+    socket.emit(Signal.SET_CAMERA, {otherUserId});
   };
 
   const toggleMic = () => {
@@ -68,10 +77,11 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
     localStream.getAudioTracks().forEach(track => {
       track.enabled = localMicOn ? false : true;
     });
+    socket.emit(Signal.SET_MICROPHONE, {otherUserId});
   };
 
   const onLeave = () => {
-    socket.emit('endCall', {
+    socket.emit(Signal.END_CALL, {
       calleeId: otherUserId,
     });
     endConnection();
@@ -80,6 +90,17 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBarElement hidden={true} />
+      <View
+        style={[
+          styles.muteContainer,
+          {
+            display: remoteActiveMic ? 'none' : 'flex',
+          },
+        ]}>
+        <TextElement fontWeight={'bold'} cStyle={styles.white}>
+          Muted
+        </TextElement>
+      </View>
       <View style={styles.remoteStream}>
         <View
           style={[
@@ -99,13 +120,12 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
           zOrder={10}
         />
       </View>
-
       <View style={styles.localStream}>
         <View
           style={[
             styles.offStream,
             {
-              display: !activeCamera ? 'flex' : 'none',
+              display: !localActiveCamera ? 'flex' : 'none',
               zIndex: 200,
             },
           ]}>
@@ -128,8 +148,8 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
         </ButtonElement>
         <ButtonElement
           onPress={toggleCamera}
-          backgroundColor={activeCamera ? Colors.white : Colors.greish}>
-          {activeCamera ? <NoVideoIcon /> : <VideoIcon />}
+          backgroundColor={localActiveCamera ? Colors.white : Colors.greish}>
+          {localActiveCamera ? <NoVideoIcon /> : <VideoIcon />}
         </ButtonElement>
         <ButtonElement
           onPress={toggleMic}
@@ -180,6 +200,17 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     elevation: 6,
   },
+  muteContainer: {
+    right: '8%',
+    bottom: '18%',
+    zIndex: 300,
+    height: 36,
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: Colors.offset,
+  },
   offStream: {
     width: '100%',
     height: '100%',
@@ -188,6 +219,9 @@ const styles = StyleSheet.create({
     top: 0,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  white: {
+    color: Colors.white,
   },
 });
 

@@ -25,6 +25,8 @@ import StatusBarElement from '../components/StatusBarElement';
 import StatusCall from '../components/StatusCall';
 import TextElement from '../components/TextElement';
 import ButtonElement from '../components/ButtonElement';
+import {Signal, Listener} from '../fixtures/signalingEvents.json';
+import Colors from '../assets/colors/palette.json';
 
 interface DeviceType {
   deviceId: string;
@@ -83,26 +85,26 @@ export default function LobbieScreen() {
   }, [localStream, remoteStream]);
 
   useEffect(() => {
-    socket.on('newCall', (data: any) => {
+    socket.on(Listener.NEW_CALL, (data: any) => {
       remoteRTCMessage.current = data.rtcMessage;
       otherUserId.current = data.callerId;
       setIncomingCall(true);
     });
 
-    socket.on('callAnswered', (data: any) => {
+    socket.on(Listener.CALL_ANSWERED, (data: any) => {
       remoteRTCMessage.current = data.rtcMessage;
       peerConnection.current.setRemoteDescription(
         new RTCSessionDescription(remoteRTCMessage.current!),
       );
     });
 
-    socket.on('callRejected', () => {
+    socket.on(Listener.CALL_REJECTED, () => {
       otherUserId.current = null;
       setUpcomingall(false);
       setIncomingCall(false);
     });
 
-    socket.on('ICEcandidate', async (data: any) => {
+    socket.on(Listener.ICE_CANDIDATE, async (data: any) => {
       let message = data.rtcMessage;
       if (peerConnection.current) {
         try {
@@ -122,10 +124,10 @@ export default function LobbieScreen() {
 
     handleLocalStream();
     return () => {
-      socket.off('newCall');
-      socket.off('callAnswered');
-      socket.off('callRejected');
-      socket.off('ICEcandidate');
+      socket.off(Listener.NEW_CALL);
+      socket.off(Listener.CALL_ANSWERED);
+      socket.off(Listener.CALL_REJECTED);
+      socket.off(Listener.ICE_CANDIDATE);
     };
   }, []);
 
@@ -149,7 +151,7 @@ export default function LobbieScreen() {
               candidate: event.candidate.candidate,
             },
           };
-          socket.emit('ICEcandidate', icecandidate);
+          socket.emit(Signal.ICE_CANDIDATE, icecandidate);
         } else {
           console.log('End of candidates.');
         }
@@ -214,7 +216,7 @@ export default function LobbieScreen() {
     };
 
     setUpcomingall(true);
-    socket.emit('call', data);
+    socket.emit(Signal.CALL, data);
   };
 
   const acceptCall = async () => {
@@ -227,7 +229,7 @@ export default function LobbieScreen() {
       callerId: otherUserId.current,
       rtcMessage: sessionDescription,
     };
-    socket.emit('answerCall', data);
+    socket.emit(Signal.ANSWER_CALL, data);
   };
 
   const rejectCall = async () => {
@@ -237,7 +239,7 @@ export default function LobbieScreen() {
     const data = {
       calleeId: otherUserId.current,
     };
-    socket.emit('rejectCall', data);
+    socket.emit(Signal.REJECT_CALL, data);
   };
 
   const endConnection = () => {
@@ -254,7 +256,7 @@ export default function LobbieScreen() {
         {localStream ? (
           <RTCView
             objectFit={'contain'}
-            style={{flex: 1}}
+            style={styles.flex}
             streamURL={localStream.toURL()}
           />
         ) : null}
@@ -270,26 +272,30 @@ export default function LobbieScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.idSection}>
           <TextElement fontSize={'lg'}>Your Caller ID</TextElement>
-          <TextElement fontSize={'xl'} cStyle={{letterSpacing: 12}}>
+          <TextElement
+            fontSize={'xl'}
+            fontWeight={'bold'}
+            cStyle={styles.letterSpacing}>
             {callerId}
           </TextElement>
+          <TextElement fontSize={'lg'}>Enter Caller ID</TextElement>
           <TextInput
-            placeholder={'Enter Caller ID'}
+            placeholder={'ID'}
             keyboardType={'number-pad'}
             style={styles.inputID}
             value={otherUserId.current!}
             maxLength={6}
             onChangeText={updateCallee}
+            allowFontScaling={false}
           />
+          <ButtonElement
+            onPress={startCall}
+            backgroundColor={Colors.primary}
+            cStyle={styles.callButton}>
+            <PhoneIcon width={32} height={32} />
+          </ButtonElement>
         </View>
       </TouchableWithoutFeedback>
-
-      <ButtonElement
-        onPress={startCall}
-        backgroundColor={'green'}
-        cStyle={styles.callButton}>
-        <PhoneIcon width={32} height={32} />
-      </ButtonElement>
     </SafeAreaView>
   );
 }
@@ -297,12 +303,15 @@ export default function LobbieScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Colors.white,
+  },
+  flex: {
+    flex: 1,
   },
   rtcContainer: {
     height: Dimensions.get('window').height * 0.6,
     width: Dimensions.get('window').width,
-    backgroundColor: 'gray',
+    backgroundColor: Colors.gray,
   },
   idSection: {
     width: Dimensions.get('window').width * 0.8,
@@ -312,13 +321,18 @@ const styles = StyleSheet.create({
     marginVertical: '4%',
   },
   callButton: {
-    alignSelf: 'center',
-    position: 'absolute',
-    bottom: '10%',
+    marginTop: '8%',
   },
   inputID: {
-    fontSize: 24,
+    fontSize: 20,
+    padding: 14,
+    borderRadius: 6,
     borderBottomWidth: 1,
-    width: Dimensions.get('window').width * 0.8,
+    height: 50,
+    textAlign: 'center',
+    width: Dimensions.get('window').width * 0.26,
+  },
+  letterSpacing: {
+    letterSpacing: 16,
   },
 });

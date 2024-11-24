@@ -1,6 +1,5 @@
 import React from 'react';
 import {Text, StyleSheet} from 'react-native';
-// import Colors from '../../assets/design/palette.json';
 
 interface TextElementType {
   children: JSX.Element | JSX.Element[] | string;
@@ -16,24 +15,27 @@ const TextElement: React.FC<TextElementType> = ({
   cStyle = {},
 }) => {
   const setFontSize = (size: string = 'm') =>
-    size === 'sm' ? 12 : size === 'm' ? 14 : size === 'lg' ? 20 : 28;
+    size === 's' ? 12 : size === 'm' ? 16 : size === 'lg' ? 22 : 32;
 
-  //   const setFontFamily = (font: string = 'Poppins-Regular') =>
-  //     font === 'bold'
-  //       ? 'Poppins-Bold'
-  //       : font === 'light'
-  //       ? 'Poppins-Light'
-  //       : 'Poppins-Regular';
+  const setFontFamily = (font: string = 'Poppins-Regular') =>
+    font === 'bold'
+      ? 'Poppins-Bold'
+      : font === 'light'
+      ? 'Poppins-Light'
+      : 'Poppins-Regular';
 
   const styles = StyleSheet.create({
     constants: {
       fontSize: setFontSize(fontSize),
-      //   fontFamily: setFontFamily(fontWeight),
-      //   color: Colors.white,
+      fontFamily: setFontFamily(fontWeight),
     },
   });
 
-  return <Text style={[styles.constants, {...cStyle}]}>{children}</Text>;
+  return (
+    <Text allowFontScaling={false} style={[styles.constants, {...cStyle}]}>
+      {children}
+    </Text>
+  );
 };
 
 export default TextElement;
