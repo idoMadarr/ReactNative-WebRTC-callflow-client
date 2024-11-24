@@ -233,7 +233,7 @@ export default function LobbieScreen() {
   };
 
   const acceptCall = async () => {
-    peerConnection.current.setRemoteDescription(
+    await peerConnection.current.setRemoteDescription(
       new RTCSessionDescription(remoteRTCMessage.current!),
     );
     const sessionDescription = await peerConnection.current.createAnswer();
