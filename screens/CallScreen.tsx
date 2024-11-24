@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   muteContainer: {
+    position: 'absolute',
     right: '8%',
     bottom: '18%',
     zIndex: 300,
