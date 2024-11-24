@@ -5,6 +5,9 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  Image,
+  Dimensions,
+  View,
 } from 'react-native';
 import {navigate} from '../utils/navigationRef';
 import TextElement from '../components/TextElement';
@@ -34,13 +37,18 @@ const InitScreen = () => {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar barStyle={'dark-content'} backgroundColor={Colors.white} />
+      <Image
+        source={require('../assets/images/icon.png')}
+        style={styles.icon}
+      />
       <TextElement fontSize={'xl'} fontWeight={'bold'}>
-        Welcome to CallFlow
+        CallFlow
       </TextElement>
       <TextElement cStyle={styles.desc}>
         A video call application enables users to connect and communicate
         through real-time video and audio streaming.
       </TextElement>
+      <View style={styles.line} />
       <ActivityIndicator size={'large'} color={Colors.primary} />
     </SafeAreaView>
   );
@@ -53,10 +61,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
   },
+  icon: {
+    width: Dimensions.get('window').width * 0.26,
+    height: Dimensions.get('window').width * 0.26,
+    marginBottom: '2%',
+  },
   desc: {
     paddingHorizontal: '6%',
     textAlign: 'center',
     marginVertical: '4%',
+  },
+  line: {
+    height: 1,
+    width: Dimensions.get('window').width * 0.6,
+    backgroundColor: Colors.primary,
+    marginBottom: '6%',
   },
 });
 

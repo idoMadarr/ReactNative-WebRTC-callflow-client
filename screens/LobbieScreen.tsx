@@ -243,10 +243,15 @@ export default function LobbieScreen() {
   };
 
   const endConnection = () => {
-    peerConnection.current.close();
-    setlocalStream(null);
+    localStream?.getTracks().forEach(track => track.stop());
+    remoteStream?.getTracks().forEach(track => track.stop());
+
+    otherUserId.current = null;
+    remoteRTCMessage.current = null;
+
+    // peerConnection.current.close();
+    setRemoteStream(null);
     navigate('lobbie');
-    // setRemoteStream(null);
   };
 
   return (
