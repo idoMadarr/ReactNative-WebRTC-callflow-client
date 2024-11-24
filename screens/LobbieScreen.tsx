@@ -141,6 +141,19 @@ export default function LobbieScreen() {
       });
 
       // @ts-ignore:
+      peerConnection.current.addEventListener(
+        'connectionstatechange',
+        (event: any) => {
+          console.log(event, 'connectionstatechange');
+        },
+      );
+
+      // @ts-ignore:
+      peerConnection.current.addEventListener('icecandidateerror', event => {
+        console.log(event, 'icecandidateerror');
+      });
+
+      // @ts-ignore:
       peerConnection.current.addEventListener('icecandidate', event => {
         if (event.candidate) {
           const icecandidate = {
