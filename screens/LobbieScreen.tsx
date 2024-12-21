@@ -41,12 +41,12 @@ let peerConstraints = {
     {
       urls: 'stun:stun.l.google.com:19302',
     },
-    {
-      urls: 'stun:stun1.l.google.com:19302',
-    },
-    {
-      urls: 'stun:stun2.l.google.com:19302',
-    },
+    // {
+    //   urls: 'stun:stun1.l.google.com:19302',
+    // },
+    // {
+    //   urls: 'stun:stun2.l.google.com:19302',
+    // },
   ],
 };
 
@@ -65,7 +65,7 @@ export default function LobbieScreen() {
   const [incomingCall, setIncomingCall] = useState(false);
   const [upcomingCall, setUpcomingall] = useState(false);
 
-  const peerConnection = useRef<RTCPeerConnection>(
+  const peerConnection = useRef<RTCPeerConnection | any>(
     new RTCPeerConnection(peerConstraints),
   );
   let remoteRTCMessage = useRef(null);
@@ -86,7 +86,7 @@ export default function LobbieScreen() {
 
   useEffect(() => {
     socket.on(Listener.NEW_CALL, (data: any) => {
-      remoteRTCMessage.current = data.rtcMessage;
+      remoteRTCMessage.current = data.offer;
       otherUserId.current = data.callerId;
       setIncomingCall(true);
     });
@@ -133,28 +133,26 @@ export default function LobbieScreen() {
 
   useEffect(() => {
     if (localStream) {
-      // @ts-ignore:
-      peerConnection.current.addEventListener('track', event => {
+      peerConnection.current.addEventListener('track', (event: any) => {
         const newRemoteStream = new MediaStream();
         newRemoteStream.addTrack(event.track);
         setRemoteStream(newRemoteStream);
       });
 
-      // @ts-ignore:
-      peerConnection.current.addEventListener(
-        'connectionstatechange',
-        (event: any) => {
-          console.log(event, 'connectionstatechange');
-        },
-      );
+      // peerConnection.current.addEventListener(
+      //   'connectionstatechange',
+      //   (event: any) => {
+      //     console.log(event, 'connectionstatechange');
+      //   },
+      // );
 
-      // @ts-ignore:
-      peerConnection.current.addEventListener('icecandidateerror', event => {
-        console.log(event, 'icecandidateerror');
-      });
+      // peerConnection.current.addEventListener('icecandidateerror', (event: any) => {
+      //   console.log(event, 'icecandidateerror');
+      // });
 
-      // @ts-ignore:
-      peerConnection.current.addEventListener('icecandidate', event => {
+      // After running setLocal/RemoteDescription this listener will try to get ice candidates.
+      // NOTICE: The idea is to transform the sdp (the offer itself) and in the same time to exhange ice candidate (which is the IP connection for webrtc protocol)
+      peerConnection.current.addEventListener('icecandidate', (event: any) => {
         if (event.candidate) {
           const icecandidate = {
             calleeId: otherUserId.current,
@@ -222,10 +220,11 @@ export default function LobbieScreen() {
     const sessionDescription = await peerConnection.current.createOffer(
       sessionConstraints,
     );
+    // setLocalDescription will fire icecandidate listener with ICE's.
     await peerConnection.current.setLocalDescription(sessionDescription);
     const data = {
       calleeId: otherUserId.current,
-      rtcMessage: sessionDescription,
+      offer: sessionDescription,
     };
 
     setUpcomingall(true);
@@ -237,6 +236,7 @@ export default function LobbieScreen() {
       new RTCSessionDescription(remoteRTCMessage.current!),
     );
     const sessionDescription = await peerConnection.current.createAnswer();
+    // The client that recive a call should use the answer as setLocalDescription
     await peerConnection.current.setLocalDescription(sessionDescription);
     const data = {
       callerId: otherUserId.current,
