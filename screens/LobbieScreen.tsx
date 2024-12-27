@@ -199,11 +199,11 @@ export default function LobbieScreen() {
       };
 
       const stream = await mediaDevices.getUserMedia(constraints);
-      setlocalStream(stream);
-
       stream.getTracks().forEach(track => {
         peerConnection.current.addTrack(track, stream);
       });
+
+      setlocalStream(stream);
     } catch (error) {
       Alert.alert('Local Stream Error:', JSON.stringify(error));
     }
