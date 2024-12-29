@@ -45,11 +45,14 @@ const InitScreen = () => {
         CallFlow
       </TextElement>
       <TextElement cStyle={styles.desc}>
-        A video call application enables users to connect and communicate
-        through real-time video and audio streaming.
+        A video call application enables users to communicate through real-time
+        video and audio streaming. This Demo app utilizes WebRTC technology for
+        seamless communication and requires users to be on the same network to
+        establish a connection effectively.
       </TextElement>
       <View style={styles.line} />
       <ActivityIndicator size={'large'} color={Colors.primary} />
+      <TextElement cStyle={styles.demo}>- Demo App -</TextElement>
     </SafeAreaView>
   );
 };
@@ -76,6 +79,10 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width * 0.6,
     backgroundColor: Colors.primary,
     marginBottom: '6%',
+  },
+  demo: {
+    position: 'absolute',
+    bottom: '5%',
   },
 });
 
