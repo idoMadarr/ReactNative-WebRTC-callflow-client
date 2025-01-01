@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {BackHandler} from 'react-native';
 import {SocketContext, socket} from './utils/socketIO';
 import AppNavigation from './navigation/AppNavigation';
 import KeepAwake from 'react-native-keep-awake';
@@ -10,6 +11,11 @@ LogBox.ignoreLogs([
 
 const App: React.FC = () => {
   KeepAwake.activate();
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', () => true);
+  }, []);
+
   return (
     <SocketContext.Provider value={socket}>
       <AppNavigation />

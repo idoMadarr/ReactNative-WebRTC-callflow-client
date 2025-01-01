@@ -5,8 +5,9 @@ import InitScreen from '../screens/InitScreen';
 import LobbieScreen from '../screens/LobbieScreen';
 import {navigationRef} from '../utils/navigationRef';
 import CallScreen from '../screens/CallScreen';
+import {RootStackParamList} from '../types/types';
 
-const AppNavigator = createNativeStackNavigator();
+const AppNavigator = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigation: React.FC = () => {
   return (

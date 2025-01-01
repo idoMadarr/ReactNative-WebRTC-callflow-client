@@ -1,7 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {SafeAreaView, StyleSheet, Dimensions, View} from 'react-native';
 import {MediaStream, RTCView} from 'react-native-webrtc';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {Socket} from 'socket.io-client';
 import {SocketContext} from '../utils/socketIO';
 import StatusBarElement from '../components/StatusBarElement';
@@ -17,14 +16,12 @@ import ButtonElement from '../components/ButtonElement';
 import * as Colors from '../assets/colors/palette.json';
 import TextElement from '../components/TextElement';
 import {Signal, Listener} from '../fixtures/signalingEvents.json';
+import {RouteProp} from '@react-navigation/native';
+import {RootStackParamList} from '../types/types';
 
-type RootStackParamList = {
-  call: any;
-};
+type CallScreenRouteProp = RouteProp<RootStackParamList, 'call'>;
 
-type CallScreenPropsType = NativeStackScreenProps<RootStackParamList, 'call'>;
-
-const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
+const CallScreen: React.FC<{route: CallScreenRouteProp}> = ({route}) => {
   const localStream = route.params!.localStream as MediaStream;
   const remoteStream = route.params!.remoteStream as MediaStream;
   const otherUserId = route.params!.otherUserId.current;
@@ -82,7 +79,7 @@ const CallScreen: React.FC<CallScreenPropsType> = ({route}) => {
 
   const onLeave = () => {
     socket.emit(Signal.END_CALL, {
-      calleeId: otherUserId,
+      otherUserId: otherUserId,
     });
     endConnection();
   };
