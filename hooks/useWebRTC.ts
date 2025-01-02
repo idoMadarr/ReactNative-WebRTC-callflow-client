@@ -58,6 +58,12 @@ export const useWebRTC = () => {
 
   const socket = useContext(SocketContext) as Socket;
 
+  useFocusEffect(
+    useCallback(() => {
+      handleLocalStream();
+    }, []),
+  ); 
+
   useEffect(() => {
     if (localStream && remoteStream) {
       navigate('call', {
@@ -123,7 +129,6 @@ export const useWebRTC = () => {
       Alert.alert('Call Ended', 'Your call has been ended by your callee.');
     });
 
-    handleLocalStream();
     return () => {
       socket.off(Listener.NEW_CALL);
       socket.off(Listener.CALL_ANSWERED);
@@ -263,16 +268,24 @@ export const useWebRTC = () => {
   };
 
   const endConnection = () => {
-    localStream?.getTracks().forEach(track => track.stop());
-    remoteStream?.getTracks().forEach(track => track.stop());
+    try {
+      localStream?.getTracks().forEach(track => track.stop());
+      remoteStream?.getTracks().forEach(track => track.stop());
 
-    otherUserId.current = null;
-    remoteRTCMessage.current = null;
+      otherUserId.current = null;
+      remoteRTCMessage.current = null;
 
-    // peerConnection.current.close();
-    setUpcomingCall(false);
-    setRemoteStream(null);
-    navigate('lobbie');
+      await peerConnection.current.close();
+      peerConnection.current = null;
+      peerConnection.current = new RTCPeerConnection(peerConstraints);
+
+      setUpcomingCall(false);
+      setRemoteStream(null);
+
+      navigate('lobbie');
+    } catch (error) {
+      Alert.alert('End Call Error:');
+    }
   };
 
   return {
