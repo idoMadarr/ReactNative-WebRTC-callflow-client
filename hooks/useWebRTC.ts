@@ -48,7 +48,7 @@ export const useWebRTC = () => {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
 
   const [incomingCall, setIncomingCall] = useState(false);
-  const [upcomingCall, setUpcomingall] = useState(false);
+  const [upcomingCall, setUpcomingCall] = useState(false);
 
   const peerConnection = useRef<RTCPeerConnection | any>(
     new RTCPeerConnection(peerConstraints),
@@ -96,7 +96,7 @@ export const useWebRTC = () => {
 
     socket.on(Listener.CALL_REJECTED, () => {
       otherUserId.current = null;
-      setUpcomingall(false);
+      setUpcomingCall(false);
       setIncomingCall(false);
     });
 
@@ -235,7 +235,7 @@ export const useWebRTC = () => {
     };
 
     socket.emit(Signal.CALL, data);
-    setUpcomingall(true);
+    setUpcomingCall(true);
   };
 
   const acceptCall = async () => {
@@ -254,7 +254,7 @@ export const useWebRTC = () => {
 
   const rejectCall = async () => {
     setIncomingCall(false);
-    setUpcomingall(false);
+    setUpcomingCall(false);
 
     const data = {
       calleeId: otherUserId.current,
@@ -270,7 +270,7 @@ export const useWebRTC = () => {
     remoteRTCMessage.current = null;
 
     // peerConnection.current.close();
-    setUpcomingall(false);
+    setUpcomingCall(false);
     setRemoteStream(null);
     navigate('lobbie');
   };
