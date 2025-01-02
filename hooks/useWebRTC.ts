@@ -10,8 +10,9 @@ import {SocketContext, callerId} from '../utils/socketIO';
 import {navigate} from '../utils/navigationRef';
 import {Socket} from 'socket.io-client';
 import {Signal, Listener} from '../fixtures/signalingEvents.json';
-import {useContext, useEffect, useRef, useState} from 'react';
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {fetch} from '@react-native-community/netinfo';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface DeviceType {
   deviceId: string;
@@ -267,7 +268,7 @@ export const useWebRTC = () => {
     socket.emit(Signal.REJECT_CALL, data);
   };
 
-  const endConnection = () => {
+  const endConnection = async () => {
     try {
       localStream?.getTracks().forEach(track => track.stop());
       remoteStream?.getTracks().forEach(track => track.stop());
